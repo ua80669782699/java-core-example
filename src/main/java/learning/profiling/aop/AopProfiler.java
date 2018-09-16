@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,16 +14,25 @@ import org.springframework.stereotype.Component;
 public class AopProfiler {
     private static final Logger log = LoggerFactory.getLogger(AopProfiler.class);
 
+    @Value("${parus.profiling.unable}")
+    boolean profilingIsUnable;
+
+    @Value("${parus.profiling.ifTimeLess:0}")
+    int ifTimeLess;
+
     @Around("@annotation(learning.profiling.Profiling))")
-    public Object profiling(ProceedingJoinPoint joinpoint) {
-        Object output = null;
-        long start = System.nanoTime();
-        try {
+    public Object profiling(ProceedingJoinPoint joinpoint) throws Throwable {
+        Object output;
+        if (profilingIsUnable){
+            long start = System.nanoTime();
             output = joinpoint.proceed();
-        } catch (Throwable e) {
-            e.printStackTrace();
+            long time = (System.nanoTime() - start) / 1000000;
+            if(time>ifTimeLess){
+                log.info(joinpoint.getSignature().getDeclaringType() + joinpoint.getSignature().getName() + " milliSeconds " + time);
+            }
+        }else{
+            output = joinpoint.proceed();
         }
-        log.info(joinpoint.getSignature().getDeclaringType() + joinpoint.getSignature().getName() + " milliSeconds " + ((System.nanoTime() - start) / 1000000));
         return output;
     }
 
