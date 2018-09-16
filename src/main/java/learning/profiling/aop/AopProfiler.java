@@ -17,7 +17,7 @@ public class AopProfiler {
     @Value("${parus.profiling.unable}")
     boolean profilingIsUnable;
 
-    @Value("${parus.profiling.ifTimeLess:0}")
+    @Value("${parus.profiling.ifTimeLess:-1}")
     int ifTimeLess;
 
     @Around("@annotation(learning.profiling.Profiling))")
@@ -27,13 +27,13 @@ public class AopProfiler {
             long start = System.nanoTime();
             output = joinpoint.proceed();
             long time = (System.nanoTime() - start) / 1000000;
-            if(time>ifTimeLess){
-                log.info(joinpoint.getSignature().getDeclaringType() + "." + joinpoint.getSignature().getName() + " milliSeconds " + time);
+            if(time > ifTimeLess){
+                String nameMethod = joinpoint.getSignature().getDeclaringType() + "." + joinpoint.getSignature().getName();
+                log.info(nameMethod + " milliSeconds " + time);
             }
         }else{
             output = joinpoint.proceed();
         }
         return output;
     }
-
 }
