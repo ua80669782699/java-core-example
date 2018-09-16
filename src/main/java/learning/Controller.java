@@ -10,6 +10,7 @@ public class Controller {
     @Profiling
     @GetMapping("test")
     public String test(){
+//        throw new RuntimeException("testEx");
         return "Ok";
     }
 }
